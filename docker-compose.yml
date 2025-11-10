@@ -1,0 +1,70 @@
+services:
+  docker_test_db_mariadb:
+    image: mariadb:latest
+    container_name: docker_test_db_mariadb
+    environment:
+      MARIADB_ROOT_PASSWORD: mariadb
+      MARIADB_DATABASE: docker_test_db
+      MARIADB_USER: swcamp
+      MARIADB_PASSWORD: swcamp
+    ports:
+      - "3306:3306"
+    volumes:
+      - mariadb-volume:/var/lib/mysql
+      - mariadb-logs:/var/log/mysql
+    networks:
+      - camp-net
+    restart: always
+    command: >
+      --log-error=/var/log/mysql/error.log
+      --general-log=1
+      --general-log-file=/var/log/mysql/general.log
+      --slow-query-log=1
+      --slow-query-log-file=/var/log/mysql/slow.log
+      --long-query-time=2
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  springboot-app:
+    build:
+      context: ./docker_test_be
+    image: indy0322/docker_test_be:latest
+    container_name: docker_test_be
+    ports:
+      - "8080:8080"
+    networks:
+      - camp-net
+    depends_on:
+      docker_test_db_mariadb:
+        condition: service_healthy
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:mariadb://docker_test_db_mariadb:3306/docker_test_db
+      SPRING_DATASOURCE_USERNAME: swcamp
+      SPRING_DATASOURCE_PASSWORD: swcamp
+    restart: always
+
+  vue-app:
+    build:
+      context: ./docker_test_fe
+    image: indy0322/docker_test_fe:latest
+    container_name: docker_test_fe
+    ports:
+      - "5144:80"
+    networks:
+      - camp-net
+    depends_on:
+      - springboot-app
+    restart: always
+
+volumes:
+  mariadb-volume:
+    driver: local
+  mariadb-logs:
+    driver: local
+
+networks:
+  camp-net:
+    driver: bridge

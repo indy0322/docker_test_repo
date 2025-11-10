@@ -1,0 +1,13 @@
+apiVersion: v1 
+kind: Service
+metadata:
+  name: docker-test-fe-ser 
+spec:
+  type: ClusterIP  
+  ports:
+  - port: 5144 
+    targetPort: 80 
+  selector:
+    app: docker-test-fe-kube
+
+

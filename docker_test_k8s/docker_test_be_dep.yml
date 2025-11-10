@@ -1,0 +1,36 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: docker-test-be-dep
+spec:
+  selector:
+    matchLabels:
+      app: docker-test-be-kube
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: docker-test-be-kube
+    spec:
+      # DB 준비 대기 컨테이너
+      initContainers:
+        - name: wait-for-db
+          image: busybox
+          command: ['sh', '-c', 'until nc -z docker-test-db-ser 3306; do echo "⏳ waiting for db"; sleep 2; done;']
+      containers:
+      - name: docker-test-be-dep
+        image: indy0322/docker_test_be_image:latest 
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 8080
+        env: 
+        - name: SPRING_DATASOURCE_URL
+          value: "jdbc:mariadb://docker-test-db-ser:3306/docker_test_db"
+        - name: SPRING_DATASOURCE_USERNAME
+          value: "swcamp"
+        - name: SPRING_DATASOURCE_PASSWORD
+          value: "swcamp"
+
+
+
+

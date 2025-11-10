@@ -1,0 +1,23 @@
+apiVersion: apps/v1 
+kind: Deployment 
+metadata: 
+  name: docker-test-fe-dep 
+spec: 
+  selector:
+    matchLabels:
+      app: docker-test-fe-kube 
+  template: 
+    metadata:
+      labels:
+        app: docker-test-fe-kube
+    spec:
+      containers:
+      - name: docker-test-fe-dep 
+        image: indy0322/docker_test_fe_image:latest 
+        imagePullPolicy: Always 
+        ports:
+        - containerPort: 80 
+
+
+
+
